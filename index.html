@@ -1,44 +1,761 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Basit Oda</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deveciler | Hybrid Designer & Coder Unicorn</title>
+    
+    <!-- Three.js (3D Grafik Motoru) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GSAP (Akıcı Geçiş Animasyonları) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- FontAwesome İkonları -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f0f2f5; }
-        #oda { border: 2px solid #333; width: 300px; margin: 20px auto; padding: 20px; background: white; border-radius: 15px; }
-        .oyuncu { background: #e1ffc7; margin: 5px; padding: 10px; border-radius: 5px; }
+        /* Neo-Brutalist & Cyber Punk Ortak Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            letter-spacing: 0.05em;
+        }
+        
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #f4f3ef; /* Görsellerdeki karakteristik kırık beyaz arka plan */
+            color: #000000;
+            overflow-x: hidden;
+        }
+
+        p, span, input, textarea, button {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+        }
+
+        /* Klasik Kalın Kenarlık Yapısı (Brutalist Border) */
+        .brutal-box {
+            background: #ffffff;
+            border: 4px solid #000000;
+            box-shadow: 8px 8px 0px #000000;
+            padding: 30px;
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        .brutal-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border: 2px solid #000000;
+            box-shadow: 3px 3px 0px #000000;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-right: 10px;
+            margin-bottom: 15px;
+        }
+
+        .badge-red { background: #ff4a4a; color: #fff; }
+        .badge-cyan { background: #00ffcc; color: #000; }
+        .badge-blue { background: #0099ff; color: #fff; }
+        .badge-green { background: #39e75f; color: #000; }
+        .badge-yellow { background: #ffde17; color: #000; }
+
+        /* ==================== 1. INTRO & 3D LOADER WITH IMAGES ==================== */
+        #loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #111111;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        #canvas3d {
+            width: 100%;
+            height: 50vh;
+            z-index: 2;
+        }
+
+        /* Giriş Ekranındaki Dekoratif Resim Kartları */
+        .intro-bg-images {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .intro-img-card {
+            position: absolute;
+            width: 180px;
+            height: 120px;
+            border: 3px solid #000;
+            box-shadow: 5px 5px 0px #000;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.4;
+            filter: grayscale(50%);
+        }
+
+        /* Farklı konumlara dağıtılmış resim çerçeveleri */
+        .img-c1 { top: 10%; left: 10%; background-image: url('https://picsum.photos/400/300?random=1'); transform: rotate(-5deg); }
+        .img-c2 { top: 15%; right: 12%; background-image: url('https://picsum.photos/400/300?random=2'); transform: rotate(8deg); }
+        .img-c3 { bottom: 15%; left: 15%; background-image: url('https://picsum.photos/400/300?random=3'); transform: rotate(4deg); }
+        .img-c4 { bottom: 20%; right: 10%; background-image: url('https://picsum.photos/400/300?random=4'); transform: rotate(-7deg); }
+
+        .progress-container {
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+            z-index: 3;
+            background: #fff;
+            padding: 20px;
+            border: 3px solid #000;
+            box-shadow: 5px 5px 0px #000;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #eee;
+            border: 2px solid #000;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #ffde17;
+        }
+
+        .progress-text {
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #000;
+        }
+
+        /* ==================== 2. MAIN SITE INTERFACE ==================== */
+        #main-site {
+            width: 100%;
+            opacity: 0;
+            visibility: hidden;
+            padding-top: 100px;
+        }
+
+        nav {
+            width: 100%;
+            background: #ffffff;
+            border-bottom: 4px solid #000000;
+            padding: 20px 40px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-size: 2rem;
+            text-transform: uppercase;
+            color: #000;
+            border: 3px solid #000;
+            padding: 5px 15px;
+            background: #ffde17;
+            box-shadow: 4px 4px 0px #000;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* 1. Sayfa Görünümü Grid Yapısı */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1.8fr;
+            gap: 40px;
+            align-items: start;
+            margin-bottom: 60px;
+        }
+
+        @media (max-width: 900px) {
+            .profile-grid { grid-template-columns: 1fr; }
+            nav { padding: 15px; }
+            .nav-logo { font-size: 1.5rem; }
+        }
+
+        .profile-card {
+            text-align: center;
+        }
+
+        .avatar-box {
+            width: 120px;
+            height: 120px;
+            border: 4px solid #000;
+            background: #ffde17;
+            margin: 0 auto 20px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3.5rem;
+            box-shadow: 4px 4px 0px #000;
+        }
+
+        .profile-title {
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .profile-subtitle {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+
+        .info-table td {
+            padding: 12px 0;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .info-table td:last-child {
+            text-align: right;
+            color: #000;
+        }
+
+        /* Yetenek Parametre Barları */
+        .skill-section-title {
+            font-size: 1.2rem;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            border-bottom: 3px solid #000;
+            padding-bottom: 5px;
+        }
+
+        .skill-wrapper {
+            margin-bottom: 15px;
+        }
+
+        .skill-label {
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .skill-bar-outer {
+            width: 100%;
+            height: 24px;
+            background: #fff;
+            border: 3px solid #000;
+            box-shadow: 3px 3px 0px #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-bar-inner {
+            height: 100%;
+            background: #ff4a4a;
+        }
+
+        .skill-percentage {
+            position: absolute;
+            right: 10px;
+            top: 2px;
+            font-size: 0.8rem;
+            color: #000;
+        }
+
+        /* 2. Sayfa Hizmet Kutuları Grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .services-grid { grid-template-columns: 1fr; }
+        }
+
+        .service-icon {
+            font-size: 2rem;
+            background: #ffde17;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid #000;
+            box-shadow: 3px 3px 0px #000;
+            margin-bottom: 20px;
+        }
+
+        .brutal-box h3 {
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        .brutal-box p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* ==================== 3. FİYAT ÖLÇEKLENDİRME SAYFASI ==================== */
+        .calc-container {
+            display: grid;
+            grid-template-columns: 1.7fr 1.3fr;
+            gap: 40px;
+        }
+
+        @media (max-width: 850px) {
+            .calc-container { grid-template-columns: 1fr; }
+        }
+
+        .slider-group {
+            margin: 30px 0;
+        }
+
+        .slider-label-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        /* Brutalist Menzil Çubuğu (Range Slider) */
+        .brutal-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 12px;
+            background: #fff;
+            border: 3px solid #000;
+            outline: none;
+            box-shadow: 3px 3px 0px #000;
+        }
+
+        .brutal-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #ff4a4a;
+            border: 3px solid #000;
+            cursor: pointer;
+            border-radius: 0;
+        }
+
+        .checkbox-group {
+            margin-top: 25px;
+        }
+
+        .brutal-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .brutal-checkbox {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #000;
+            background: #fff;
+            box-shadow: 2px 2px 0px #000;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .brutal-checkbox:checked {
+            background: #00ffcc;
+        }
+
+        .brutal-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: -2px;
+            left: 3px;
+            font-size: 1.1rem;
+            color: #000;
+            font-weight: bold;
+        }
+
+        /* Bütçe Gösterge Alanı */
+        .budget-box {
+            background: #ffde17;
+            border: 4px solid #000;
+            box-shadow: 8px 8px 0px #000;
+            padding: 40px 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .budget-title {
+            border: 2px solid #000;
+            background: #fff;
+            padding: 5px 15px;
+            display: inline-block;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            box-shadow: 3px 3px 0px #000;
+        }
+
+        .budget-amount {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .budget-note {
+            font-size: 0.75rem;
+            color: #444;
+            max-width: 250px;
+            margin-bottom: 30px;
+        }
+
+        .action-btn {
+            width: 100%;
+            background: #fff;
+            border: 3px solid #000;
+            padding: 15px;
+            font-size: 1rem;
+            box-shadow: 4px 4px 0px #000;
+            cursor: pointer;
+            transition: transform 0.1s;
+            text-transform: uppercase;
+        }
+
+        .action-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #000;
+        }
+
+        /* ==================== 4. İLETİŞİM SAYFASI (EN ALT BÖLÜM) ==================== */
+        .contact-wrapper {
+            max-width: 700px;
+            margin: 60px auto;
+            text-align: center;
+        }
+
+        .contact-phone {
+            font-size: 1.4rem;
+            margin-top: 25px;
+            color: #ff4a4a;
+            display: inline-block;
+            border-bottom: 2px dashed #ff4a4a;
+            padding-bottom: 5px;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Sesli Oda Taslağı</h1>
-    
-    <div id="oda">
-        <h3>İçeridekiler</h3>
-        <div id="liste">
-            <p>Henüz kimse yok...</p>
+    <!-- GİRİŞ EKRANI & 3D BD VE GÖRSEL KARTLARI -->
+    <div id="loader-container">
+        <!-- Arka Plan Dekoratif Resimleri -->
+        <div class="intro-bg-images">
+            <div class="intro-img-card img-c1"></div>
+            <div class="intro-img-card img-c2"></div>
+            <div class="intro-img-card img-c3"></div>
+            <div class="intro-img-card img-c4"></div>
+        </div>
+
+        <!-- 3D "BD" Harf Yapısı -->
+        <div id="canvas3d"></div> 
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="fill"></div>
+            </div>
+            <div class="progress-text" id="percent">0%</div>
         </div>
     </div>
 
-    <input type="text" id="isimInput" placeholder="Adını yaz...">
-    <button onclick="katil()">Odaya Gir</button>
+    <!-- ANA INTERAKTIF WEB PANELİ -->
+    <div id="main-site">
+        <nav>
+            <div class="nav-logo">DEVECİLER</div>
+        </nav>
+
+        <div class="container">
+            
+            <!-- BÖLÜM 1: BİLGİLER VE HAKKIMDA (1. sayfa.png Temeli) -->
+            <div class="profile-grid">
+                <div class="brutal-box profile-card">
+                    <div class="brutal-badge badge-red" style="position:absolute; top:-15px; right:10px;">VERİ SEC-GRADE 1</div>
+                    <div class="avatar-box"><i class="fa-solid fa-user-ninja"></i></div>
+                    <h2 class="profile-title">BURAK DEVECİ</h2>
+                    <p class="profile-subtitle">HYBRID DESIGNER & CODER UNICORN</p>
+                    
+                    <table class="info-table">
+                        <tr><td>MİLLİYET / LOKASYON:</td><td>TÜRKİYE / KÜRESEL FAALİYET</td></tr>
+                        <tr><td>AKTİF YAŞ:</td><td>32 YIL</td></tr>
+                        <tr><td>SEKTÖREL TECRÜBE:</td><td>20 YIL (SINCE 2006 / AGE 12)</td></tr>
+                        <tr><td>KÜRESEL PROJELER:</td><td>AVRUPA, UKRAYNA, ABD SEKTÖRLERİ</td></tr>
+                        <tr><td>UZMANLIK ALANLARI:</td><td>REAL-TIME UI MATH, SEC, WEB DEV</td></tr>
+                        <tr><td>SİBER İMZA:</td><td style="color:#ff4a4a;">BD-DEV</td></tr>
+                    </table>
+                </div>
+
+                <div class="brutal-box" style="height: 100%;">
+                    <h2 style="font-size: 2rem; margin-bottom: 20px; text-transform: uppercase;">İKİ DÜNYANIN BİRLEŞİMİ</h2>
+                    <p style="margin-bottom: 20px;">12 yaşında ilk kod satırlarını ve piksel çizimlerini oluşturmaya başlayan <strong>BURAK DEVECİ</strong>, bilişim dünyasında tecrübesiyle sınırları ortadan kaldıran nadir bir <strong>Designer-Coder Hybrid Unicorn</strong>'dur.</p>
+                    <p style="margin-bottom: 30px;">Çoğu dijital stüdyo tasarım ve kodlamayı iki ayrı dünyaya ayırırken, Deveciler altyapısı bu sınırları ortadan kaldırır. En karmaşık matematiksel algoritmaları, Web Audio sentezleyicilerini ve siber güvenlik zırhlarını doğrudan estetik ve akıcı brutalist arayüzlere dönüştürür.</p>
+                    
+                    <div class="skill-section-title">📊 SİBER YETENEK PARAMETRELERİ</div>
+                    
+                    <div class="skill-wrapper">
+                        <span class="skill-label">🎨 UI/UX EKLEKTİK TASARIM</span>
+                        <div class="skill-bar-outer">
+                            <div class="skill-bar-inner" style="width: 99%; background: #ff4a4a;"></div>
+                            <span class="skill-percentage">99%</span>
+                        </div>
+                    </div>
+                    <div class="skill-wrapper">
+                        <span class="skill-label">⚙️ GELİŞMİŞ ALGORİTMA & KOD</span>
+                        <div class="skill-bar-outer">
+                            <div class="skill-bar-inner" style="width: 95%; background: #00ffcc;"></div>
+                            <span class="skill-percentage">95%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BÖLÜM 2: WEB SİTE KURMA & HİZMETLER (2.sayfa.png Temeli) -->
+            <div class="brutal-badge badge-green" style="font-size: 1.2rem; padding: 10px 20px; margin-bottom: 20px;">// HİZMET KATALOGU & YAZILIM MİMARİSİ</div>
+            <div class="services-grid">
+                <div class="brutal-box">
+                    <div class="service-icon" style="background:#00ffcc;"><i class="fa-solid fa-laptop-code"></i></div>
+                    <h3>PREMIUM WEB GELİŞTİRME (REACT & VITE)</h3>
+                    <p>WordPress veya Wix gibi hantal, yavaş şablonlar yerine; son teknoloji React ve Vite kullanarak milisaniyeler içinde yüklenen, piksel kusursuzluğunda, modern ve özel kodlanmış tek sayfalık web uygulamaları (SPA) inşa ediyoruz.</p>
+                </div>
+
+                <div class="brutal-box">
+                    <div class="service-icon" style="background:#ff4a4a;"><i class="fa-solid fa-database"></i></div>
+                    <h3>MYSQL-FREE DİNAMİK YÖNETİM PANELİ</h3>
+                    <p>Sunucu gecikmesi, SQL bağlantı hataları veya çökme riskleri taşıyan klasik veritabanları yerine; kopyala-yapıştır yedeklenebilen, hızlı ve bakımı sıfır maliyetli özel PHP-JSON içerik yönetim panelleri kuruyoruz.</p>
+                </div>
+
+                <div class="brutal-box">
+                    <div class="service-icon" style="background:#ffde17;"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                    <h3>GOOGLE RICH SCHEMA & SEO ALTYAPISI</h3>
+                    <p>Sadece standart arama etiketleri değil; Google'ın yapay zeka botlarının sitenizi ürün, fiyat, danışman ve konum olarak tam anlamıyla tanımasını ve arama sonuçlarında resimlerle öne çıkmasını sağlayan yapılandırılmış JSON-LD Şemaları enjekte ediyoruz.</p>
+                </div>
+
+                <div class="brutal-box">
+                    <div class="service-icon" style="background:#0099ff;"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h3>SİBER GÜVENLİK & PERFORMANS YÖNETİMİ</h3>
+                    <p>Sitenize sızma (shell/hack) girişimlerini engelleyen yükleme klasörü korumaları, Clickjacking ve XSS koruma başlıkları, sunucu bazlı Gzip dosya sıkıştırma ve tarayıcı önbellekleme sistemlerini anahtar teslim aktifleştiriyoruz.</p>
+                </div>
+            </div>
+
+            <!-- BÖLÜM 3: FİYAT ÖLÇEKLENDİRME (3.sınıf.png Temeli) -->
+            <div class="brutal-badge badge-yellow" style="font-size: 1.2rem; padding: 10px 20px; margin-top: 40px; margin-bottom: 20px;">// DİNAMİK PROJE BÜTÇE HESAPLAYICI</div>
+            <div class="brutal-box calc-container">
+                <div>
+                    <div class="slider-group">
+                        <div class="slider-label-row">
+                            <span style="text-transform: uppercase;">PROJE ÖLÇEĞİ (SAYFA / BÖLÜM)</span>
+                            <div class="brutal-badge badge-red" id="pageBadge" style="margin:0;">1 Sayfa</div>
+                        </div>
+                        <input type="range" min="1" max="3" value="1" class="brutal-slider" id="pageSlider">
+                        <div class="slider-label-row" style="margin-top: 10px; font-size: 0.8rem; color: #555;">
+                            <span>1 Sayfa (Landing)</span>
+                            <span>10 Sayfa</span>
+                            <span>20 Sayfa (Gelişmiş)</span>
+                        </div>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <span style="display:block; margin-bottom:15px; text-transform:uppercase;">PREMIUM ÖZELLİK EKLE</span>
+                        
+                        <label class="brutal-checkbox-label">
+                            <input type="checkbox" class="brutal-checkbox" id="optPanel" value="15000" checked>
+                            <span>Dinamik Yönetim Paneli (+15.000 TL)<br><small style="color:#666;">MySQL-Free, pratik içerik ekleme ve çıkarma paneli</small></span>
+                        </label>
+
+                        <label class="brutal-checkbox-label">
+                            <input type="checkbox" class="brutal-checkbox" id="optLang" value="10000">
+                            <span>Çoklu Dil Altyapısı (TR / EN / AR) (+10.000 TL)<br><small style="color:#666;">Uluslararası müşteriler için dil seçici ve çeviri panelleri</small></span>
+                        </label>
+
+                        <label class="brutal-checkbox-label">
+                            <input type="checkbox" class="brutal-checkbox" id="optSeo" value="7500" checked>
+                            <span>Google Rich Schema & SEO Altyapısı (+7.500 TL)<br><small style="color:#666;">Arama sonuçlarında zengin snippet'ler ve SEO dostu yapılandırılmış veri</small></span>
+                        </label>
+
+                        <label class="brutal-checkbox-label">
+                            <input type="checkbox" class="brutal-checkbox" id="optWp" value="5000" checked>
+                            <span>Hızlı WhatsApp Talep Formları (+5.000 TL)<br><small style="color:#666;">Doğrudan siber hattınıza düşen kullanıcı bildirim formları</small></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Hesaplanan Tahmini Bütçe Kutusu -->
+                <div class="budget-box">
+                    <div class="budget-title">TAHMİNİ BÜTÇE</div>
+                    <div class="budget-amount" id="totalBudget">52.000 TL</div>
+                    <div class="budget-note">*Fiyatlandırmaya KDV ve yıllık sunucu hosting giderleri dahil değildir.</div>
+                    <button class="action-btn" onclick="window.open('https://wa.me/905386523367?text=Merhaba, projem için fiyat teklifi almak istiyorum.', '_blank')">💬 WHATSAPP TEKLİFİ AL</button>
+                </div>
+            </div>
+
+            <!-- BÖLÜM 4: İLETİŞİM (4.sınıf.png Temeli) -->
+            <div class="brutal-box contact-wrapper">
+                <div class="brutal-badge badge-green" style="margin-bottom: 20px;">⚡ SİBER İNTERAKTİF BAĞLANTI</div>
+                <h2 style="font-size: 2rem; text-transform: uppercase; margin-bottom: 15px;">BİZİMLE İLETİŞİME GEÇİN</h2>
+                <p style="max-width: 550px; margin: 0 auto 20px auto; font-size: 0.95rem; color:#333;">Aşağıdaki butona yaklaştığınızda **Web Audio API** tarafından sentezlenen retro melodiler çalacaktır. Tıkladığınızda ise doğrudan siber hattımıza bağlanırsınız!</p>
+                
+                <button class="action-btn" style="background:#ffde17; max-width: 400px; margin: 10px auto;" onclick="window.open('https://wa.me/905386523367', '_blank')">💬 ACİL SİBER WHATSAPP HATTI</button>
+                
+                <br>
+                <a href="tel:+905386523367" class="contact-phone"><i class="fa-solid fa-phone"></i> +90 538 652 33 67</a>
+            </div>
+
+        </div>
+    </div>
 
     <script>
-        function katil() {
-            let isim = document.getElementById('isimInput').value;
-            if(isim) {
-                let liste = document.getElementById('liste');
-                // Eğer ilk kişi giriyorsa "henüz kimse yok" yazısını sil
-                if(liste.innerHTML.includes("Henüz")) liste.innerHTML = "";
-                
-                // Yeni bir oyuncu kutusu oluştur
-                liste.innerHTML += <div class="oyuncu">🟢 ${isim}</div>;
-                document.getElementById('isimInput').value = ""; // Kutuyu temizle
+        // --- 1. SİMÜLE YÜKLEME SİTEMİ ---
+        let width = 0;
+        const fill = document.getElementById('fill');
+        const percent = document.getElementById('percent');
+        
+        const loadingInterval = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(loadingInterval);
+                gsap.to("#loader-container", { opacity: 0, duration: 0.6, onComplete: () => {
+                    document.getElementById('loader-container').style.display = 'none';
+                }});
+                gsap.to("#main-site", { visibility: "visible", opacity: 1, duration: 0.6 });
             } else {
-                alert("Lütfen bir isim yaz!");
+                width += Math.floor(Math.random() * 6) + 2;
+                if(width > 100) width = 100;
+                fill.style.width = width + '%';
+                percent.innerText = width + '%';
             }
-        }
-    </script>
+        }, 60);
 
+        // --- 2. THREE.JS GİRİŞTEKİ 3D 'BD' HARF YAPISI ---
+        const container = document.getElementById('canvas3d');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.z = 4;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        const bdGroup = new THREE.Group();
+        const matBrutal = new THREE.MeshBasicMaterial({ color: 0xffde17, wireframe: true });
+        const matBrutalPink = new THREE.MeshBasicMaterial({ color: 0xff4a4a, wireframe: true });
+
+        // 'B' Harfi Formu (Kafes Küpler)
+        const bTop = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.6, 0.6), matBrutal);
+        bTop.position.set(-0.7, 0.35, 0);
+        const bBottom = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.7, 0.6), matBrutal);
+        bBottom.position.set(-0.7, -0.3, 0);
+        bdGroup.add(bTop, bBottom);
+
+        // 'D' Harfi Formu (Kafes Silindir)
+        const dShape = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.6, 6), matBrutalPink);
+        dShape.position.set(0.7, 0.05, 0);
+        dShape.rotation.x = Math.PI / 2;
+        bdGroup.add(dShape);
+
+        scene.add(bdGroup);
+
+        let mouseX = 0, mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+            mouseY = (e.clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            bdGroup.rotation.y += 0.006;
+            bdGroup.rotation.y += (mouseX * 0.5 - bdGroup.rotation.y) * 0.05;
+            bdGroup.rotation.x += (mouseY * 0.4 - bdGroup.rotation.x) * 0.05;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        // --- 3. DİNAMİK FİYAT ÖLÇEKLENDİRME YAPISI (3.sınıf.png Hesaplama Mantığı) ---
+        const pageSlider = document.getElementById('pageSlider');
+        const pageBadge = document.getElementById('pageBadge');
+        const totalBudget = document.getElementById('totalBudget');
+        
+        const optPanel = document.getElementById('optPanel');
+        const optLang = document.getElementById('optLang');
+        const optSeo = document.getElementById('optSeo');
+        const optWp = document.getElementById('optWp');
+
+        function calculateBudget() {
+            let basePrice = 24500; // 1 Sayfa temel başlangıç fiyatı
+            let sliderVal = parseInt(pageSlider.value);
+            
+            if (sliderVal === 1) {
+                pageBadge.innerText = "1 Sayfa";
+                basePrice = 24500;
+            } else if (sliderVal === 2) {
+                pageBadge.innerText = "10 Sayfa";
+                basePrice = 38000;
+            } else {
+                pageBadge.innerText = "20 Sayfa";
+                basePrice = 55000;
+            }
+
+            // Checkbox ek ücretleri topla
+            let additional = 0;
+            if (optPanel.checked) additional += parseInt(optPanel.value);
+            if (optLang.checked) additional += parseInt(optLang.value);
+            if (optSeo.checked) additional += parseInt(optSeo.value);
+            if (optWp.checked) additional += parseInt(optWp.value);
+
+            let finalPrice = basePrice + additional;
+            totalBudget.innerText = finalPrice.toLocaleString('tr-TR') + " TL";
+        }
+
+        pageSlider.addEventListener('input', calculateBudget);
+        [optPanel, optLang, optSeo, optWp].forEach(item => item.addEventListener('change', calculateBudget));
+        
+        // İlk açılışta hesaplamayı çalıştır
+        calculateBudget();
+    </script>
 </body>
 </html>
